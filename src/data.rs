@@ -1,16 +1,29 @@
 use core::fmt::Debug;
+use std::collections::{HashMap, HashSet};
 use std::vec::Vec;
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, PartialEq, Hash, Eq)]
 pub struct Coord {
     x: u8,
     y: u8,
 }
 
+impl Coord {
+    pub fn new(x: u8, y: u8) -> Coord {
+        Coord { x, y }
+    }
+}
+
+impl std::fmt::Display for Coord {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "({},{})", self.x, self.y)
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct Cell {
-    coord: Coord,
-    candidates: Vec<u8>,
+    pub coord: Coord,
+    pub candidates: HashSet<u8>,
     pub value: Option<u8>,
     is_given: bool,
 }
@@ -21,12 +34,12 @@ pub struct Cell {
 
 #[derive(Debug)]
 struct Row {
-    x: u8,
+    y: u8,
 }
 
 #[derive(Debug)]
 struct Column {
-    y: u8,
+    x: u8,
 }
 
 #[derive(Debug)]
@@ -43,34 +56,41 @@ pub enum Region {
 }
 
 impl Region {
-    pub fn cell_coords(self: &Self, grid: &Grid) -> Vec<Coord> {
-        let mut coords: Vec<Coord> = Vec::new();
+    pub fn cell_coords(self: &Self, grid: &Grid) -> HashSet<Coord> {
+        let mut coords: HashSet<Coord> = HashSet::with_capacity(grid.size as usize);
         match self {
             Region::Row(row) => {
-                coords.reserve_exact(grid.size as usize);
-                for y in 0..grid.size {
-                    coords.push(Coord { x: row.x, y });
+                for x in 0..grid.size {
+                    coords.insert(Coord { x, y: row.y });
                 }
-                coords
             }
             Region::Column(column) => {
-                coords.reserve_exact(grid.size as usize);
-                for x in 0..grid.size {
-                    coords.push(Coord { x, y: column.y });
+                for y in 0..grid.size {
+                    coords.insert(Coord { x: column.x, y });
                 }
-                coords
             }
             Region::Subgrid(subgrid) => {
-                coords.reserve_exact((subgrid.size * subgrid.size) as usize);
                 for y in 0..subgrid.size {
                     for x in 0..subgrid.size {
-                        coords.push(Coord {
+                        coords.insert(Coord {
                             x: subgrid.top_left.x + x,
                             y: subgrid.top_left.y + y,
-                        })
+                        });
                     }
                 }
-                coords
+            }
+        }
+        coords
+    }
+
+    fn contains(self: &Self, cell: &Cell) -> bool {
+        match self {
+            Region::Row(row) => cell.coord.y == row.y,
+            Region::Column(column) => cell.coord.x == column.x,
+            Region::Subgrid(subgrid) => {
+                let horizontal_range = subgrid.top_left.x..(subgrid.top_left.x + subgrid.size);
+                let vertical_range = subgrid.top_left.y..(subgrid.top_left.y + subgrid.size);
+                horizontal_range.contains(&cell.coord.x) && vertical_range.contains(&cell.coord.y)
             }
         }
     }
@@ -93,17 +113,17 @@ impl Grid {
 
         for y in 0..size {
             for x in 0..size {
-                grid.cells.push(Cell{
-                    coord: Coord{x,y},
-                    candidates: Vec::new(),
-                    value: Some(x+1),
-                    is_given: false 
+                grid.cells.push(Cell {
+                    coord: Coord { x, y },
+                    candidates: HashSet::new(),
+                    value: None,
+                    is_given: false,
                 })
             }
-            
+
             // Since we're iterating over the size anyway we can set up our row & column regions here:
-            grid.regions.push(Region::Row(Row { x: y }));
-            grid.regions.push(Region::Column(Column { y }));
+            grid.regions.push(Region::Row(Row { y }));
+            grid.regions.push(Region::Column(Column { x: y }));
         }
 
         // TODO Make this more generic; It should be something like:
@@ -125,4 +145,53 @@ impl Grid {
 
         grid
     }
+
+    fn coord_to_cell_index(self: &Self, coord: &Coord) -> usize {
+        (coord.x + self.size * coord.y) as usize
+    }
+
+    pub fn set_given_value(self: &mut Self, coord: Coord, value: u8) {
+        let index = self.coord_to_cell_index(&coord);
+        self.cells[index].value = Some(value);
+        self.cells[index].is_given = true;
+    }
+
+    fn regions_for_cell(self: &Self, cell: &Cell) -> Vec<&Region> {
+        self.regions.iter().filter(|r| r.contains(cell)).collect()
+    }
+
+    fn cells_for_region(self: &Self, region: &Region) -> Vec<&Cell> {
+        let coords = region.cell_coords(self);
+        self.cells
+            .iter()
+            .filter(|cell| coords.contains(&cell.coord))
+            .collect()
+    }
+
+    pub fn compute_candidates(self: &mut Self) {
+        let mut candidates: HashMap<Coord, HashSet<u8>> = HashMap::new();
+        for cell in self.cells.iter() {
+            if let Some(_) = cell.value {
+                continue;
+            }
+            let regions = self.regions_for_cell(&cell);
+            // Start out with all candidates
+            let mut cell_candidates: HashSet<u8> = HashSet::from_iter(1..=self.size);
+            for region in regions.iter() {
+                let cells = self.cells_for_region(*region);
+                for v in cells.iter().filter_map(|v| v.value) {
+                    cell_candidates.remove(&v);
+                }
+            }
+            candidates.insert(cell.coord, cell_candidates);
+        }
+        for cell in self.cells.iter_mut() {
+            if let Some(cell_candidates) = candidates.get(&cell.coord) {
+                cell.candidates = cell_candidates.clone();
+            }
+        }
+    }
 }
+
+// Calculate candidates:
+//  - for each cell, get all regions, then get all given values in those regions, the take the complement of those values as candidates.
