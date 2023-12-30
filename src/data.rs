@@ -7,11 +7,11 @@ pub struct Coord {
     y: u8,
 }
 
-#[derive(Debug)]
-struct Cell {
+#[derive(Debug, Clone)]
+pub struct Cell {
     coord: Coord,
     candidates: Vec<u8>,
-    value: u8,
+    pub value: Option<u8>,
     is_given: bool,
 }
 
@@ -78,8 +78,8 @@ impl Region {
 
 #[derive(Debug)]
 pub struct Grid {
-    size: u8,
-    cells: Vec<Cell>,
+    pub size: u8,
+    pub cells: Vec<Cell>,
     pub regions: Vec<Region>,
 }
 
@@ -91,9 +91,19 @@ impl Grid {
             regions: Vec::new(),
         };
 
-        for i in 0..size {
-            grid.regions.push(Region::Row(Row { x: i }));
-            grid.regions.push(Region::Column(Column { y: i }));
+        for y in 0..size {
+            for x in 0..size {
+                grid.cells.push(Cell{
+                    coord: Coord{x,y},
+                    candidates: Vec::new(),
+                    value: Some(x+1),
+                    is_given: false 
+                })
+            }
+            
+            // Since we're iterating over the size anyway we can set up our row & column regions here:
+            grid.regions.push(Region::Row(Row { x: y }));
+            grid.regions.push(Region::Column(Column { y }));
         }
 
         // TODO Make this more generic; It should be something like:
@@ -112,6 +122,7 @@ impl Grid {
                 }
             }
         }
+
         grid
     }
 }

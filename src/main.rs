@@ -1,5 +1,6 @@
 mod data;
-//mod output;
+mod output;
+
 fn main() {
 
     let grid = dbg!(data::Grid::new(9));
@@ -9,6 +10,10 @@ fn main() {
         num += 1;
         println!("{num}: {:?}", region.cell_coords(&grid));
     }
+
+    println!();
+
+    output::output_grid(&grid)
 }
 
 
