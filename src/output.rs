@@ -22,6 +22,8 @@ pub fn output_grid(grid: &Grid) {
 pub fn output_candidates(grid: &Grid) {
     let _lock = stdout().lock();
     for cell in grid.cells.iter() {
-        println!("{}: {:?}", cell.coord, cell.candidates);
+        if cell.value.is_none() {
+            println!("{}: {:?}", cell.coord, cell.candidates);
+        }
     }
 }
