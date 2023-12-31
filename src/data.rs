@@ -56,6 +56,8 @@ pub enum Region {
 }
 
 impl Region {
+    // TODO This should be computed once when the region is created and kept in memory.
+    //  We should probably switch to structs instead of an enum? But then we probably end up in dynamic dispatch territory...
     pub fn cell_coords(self: &Self, grid: &Grid) -> HashSet<Coord> {
         let mut coords: HashSet<Coord> = HashSet::with_capacity(grid.size as usize);
         match self {
