@@ -15,8 +15,15 @@ fn main() {
     output::output_grid(&grid);
     output::output_candidates(&grid);
 
-    let solutions = NakedSingle::solutions(&grid);
-    solutions.iter().for_each(|s| println!("{s}"));
+    while !grid.is_solved() {
+        println!();
+        let solutions = NakedSingle::solutions(&grid);
+        solutions.iter().for_each(|s| println!("{s}"));
+
+        grid.apply(&solutions);
+        output::output_grid(&grid);
+        output::output_candidates(&grid);
+    }
 }
 
 fn load_puzzle(file_path: &str) -> data::Grid {

@@ -20,7 +20,7 @@ impl std::fmt::Display for Coord {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct Cell {
     pub coord: Coord,
     pub candidates: HashSet<u8>,
@@ -32,23 +32,23 @@ pub struct Cell {
 //     fn cell_coords(self, grid: &Grid) -> Vec<Coord>;
 // }
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 struct Row {
     y: u8,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 struct Column {
     x: u8,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 struct Square {
     size: u8,
     top_left: Coord,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 pub enum Region {
     Row(Row),
     Column(Column),
@@ -57,12 +57,12 @@ pub enum Region {
 
 pub struct Solution {
     coord: Coord,
-    value: u8
+    value: u8,
 }
 
 impl Solution {
     pub fn new(coord: Coord, value: u8) -> Solution {
-        Solution{coord, value}
+        Solution { coord, value }
     }
 }
 
@@ -103,13 +103,17 @@ impl Region {
     }
 
     fn contains(self: &Self, cell: &Cell) -> bool {
+        self.contains_coord(&cell.coord)
+    }
+
+    fn contains_coord(self: &Self, coord: &Coord) -> bool {
         match self {
-            Region::Row(row) => cell.coord.y == row.y,
-            Region::Column(column) => cell.coord.x == column.x,
+            Region::Row(row) => coord.y == row.y,
+            Region::Column(column) => coord.x == column.x,
             Region::Square(subgrid) => {
                 let horizontal_range = subgrid.top_left.x..(subgrid.top_left.x + subgrid.size);
                 let vertical_range = subgrid.top_left.y..(subgrid.top_left.y + subgrid.size);
-                horizontal_range.contains(&cell.coord.x) && vertical_range.contains(&cell.coord.y)
+                horizontal_range.contains(&coord.x) && vertical_range.contains(&coord.y)
             }
         }
     }
@@ -179,12 +183,33 @@ impl Grid {
         self.regions.iter().filter(|r| r.contains(cell)).collect()
     }
 
+    fn regions_for_coord(self: &Self, coord: &Coord) -> Vec<Region> {
+        self.regions
+            .iter()
+            .filter(|r| r.contains_coord(coord))
+            .cloned()
+            .collect()
+    }
+
     fn cells_for_region(self: &Self, region: &Region) -> Vec<&Cell> {
         let coords = region.cell_coords(self);
         self.cells
             .iter()
             .filter(|cell| coords.contains(&cell.coord))
             .collect()
+    }
+    fn cells_for_region_mut(self: &mut Self, region: &Region) -> Vec<&mut Cell> {
+        let coords = region.cell_coords(self);
+        self.cells
+            .iter_mut()
+            .filter(|cell| coords.contains(&cell.coord))
+            .collect()
+    }
+
+    fn grid_cell(self: &mut Self, coord: Coord) -> &mut Cell {
+        self.cells
+            .get_mut(coord.x as usize + coord.y as usize * self.size as usize)
+            .expect("Coord should be in bounds")
     }
 
     pub fn compute_candidates(self: &mut Self) {
@@ -209,6 +234,28 @@ impl Grid {
                 cell.candidates = cell_candidates.clone();
             }
         }
+    }
+
+    pub fn apply(self: &mut Self, solutions: &[Solution]) {
+        for solution in solutions {
+            {
+                let cell = self.grid_cell(solution.coord);
+                cell.value = Some(solution.value);
+                cell.candidates.clear();
+            }
+            {
+                // Remove candidate from all other cells that share a region with the cell
+                for region in self.regions_for_coord(&solution.coord) {
+                    for other_cell in self.cells_for_region_mut(&region) {
+                        other_cell.candidates.remove(&solution.value);
+                    }
+                }
+            }
+        }
+    }
+
+    pub fn is_solved(self: &Self) -> bool {
+        ! self.cells.iter().any(|c| c.value.is_none())
     }
 }
 
