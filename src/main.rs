@@ -15,17 +15,13 @@ fn main() {
 fn load_puzzle(file_path: &str) -> data::Grid {
     let mut grid = data::Grid::new(9);
     let contents = fs::read_to_string(file_path).expect("Should have been able to read the file");
-    let mut y = 0;
-    for line in contents.lines() {
-        let mut x = 0;
-        for c in line.split(' ') {
+    for (y, line) in contents.lines().enumerate() {
+        for (x, c) in line.split(' ').enumerate() {
             if c != "." {
                 let v: u8 = c.parse().expect("The value should have been a number");
-                grid.set_given_value(Coord::new(x, y), v)
+                grid.set_given_value(Coord::new(x as u8, y as u8), v)
             }
-            x += 1;
         }
-        y += 1;
     }
     grid
 }
