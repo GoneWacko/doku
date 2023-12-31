@@ -8,8 +8,8 @@ pub struct Coord {
 }
 
 impl Coord {
-    pub fn new(x: u8, y: u8) -> Coord {
-        Coord { x, y }
+    pub fn new(x: u8, y: u8) -> Self {
+        Self { x, y }
     }
 }
 
@@ -33,8 +33,8 @@ pub struct Solution {
 }
 
 impl Solution {
-    pub fn new(coord: Coord, value: u8) -> Solution {
-        Solution { coord, value }
+    pub fn new(coord: Coord, value: u8) -> Self {
+        Self { coord, value }
     }
 }
 
@@ -91,8 +91,8 @@ pub struct Region {
     coords: HashSet<Coord>,
 }
 impl Region {
-    pub fn new(kind: RegionKind, grid: &Grid) -> Region {
-        let mut region = Region {
+    pub fn new(kind: RegionKind, grid: &Grid) -> Self {
+        let mut region = Self {
             kind,
             coords: HashSet::new(),
         };
