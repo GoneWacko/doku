@@ -3,6 +3,12 @@ use std::ptr;
 use super::ReduceStrategy;
 use crate::data::{Grid, Reduction, Region};
 
+/// Region Intersection is a way to reduce the possible candidates in the Sudoku grid by looking at ways regions intersect.
+/// For example, if the first row of the grid only has 7 as a candidate in the first three cells, there is an intersection with
+/// the top-left 3x3 subgrid square. The number 7 cannot be a candidate in any of the other cells in this square. If we put a 7
+/// in any of the other cells, there would be no way to put a 7 on the first row.
+/// Inversely, if the only places that 7 is a candidate in a 3x3 subgrid are the first 3 cells, we can conclude that 7 cannot
+/// occur anywhere else on the top row.
 pub struct RegionIntersection {}
 
 impl ReduceStrategy for RegionIntersection {

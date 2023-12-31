@@ -2,6 +2,7 @@ use super::Solution;
 use super::SolveStrategy;
 use crate::data::Grid;
 
+/// Naked Singles are cells which have only one candidate.
 pub struct NakedSingle {}
 
 impl SolveStrategy for NakedSingle {
