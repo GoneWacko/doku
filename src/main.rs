@@ -4,24 +4,44 @@ mod strategies;
 
 use data::Coord;
 use strategies::naked_single::NakedSingle;
+use strategies::region_intersection::RegionIntersection;
+use strategies::ReduceStrategy;
 use strategies::SolveStrategy;
 
 use std::fs;
 
 fn main() {
-    let mut grid = load_puzzle("puzzles/very_easy_2.txt");
+    let mut grid = load_puzzle("puzzles/intersection.txt");
     grid.compute_candidates();
+
     println!("### Initial grid:");
     let mut i: u32 = 0;
     print_board(&grid, i);
     while !grid.is_solved() {
         i += 1;
         println!();
+        println!("Trying NakedSingles");
         let solutions = NakedSingle::solutions(&grid);
-        println!("### ({i}) Found solutions:");
-        solutions.iter().for_each(|s| println!("{s}"));
-        grid.apply(&solutions);
+        if !solutions.is_empty() {
+            println!("### ({i}) Found solutions:");
+            solutions.iter().for_each(|s| println!("{s}"));
+            grid.apply_solutions(&solutions);
+            print_board(&grid, i);
+            continue;
+        }
+        println!("No naked singles found.");
+        println!("Trying intersection reduction");
+        let reductions = RegionIntersection::reduce_candidates(&grid);
+        if !reductions.is_empty() {
+            println!("### ({i}) Found reductions:");
+            reductions.iter().for_each(|r| println!("{r}"));
+            grid.apply_reductions(&reductions);
+            print_board(&grid, i);
+            continue;
+        }
+        println!("No intersections found.");
         print_board(&grid, i);
+        panic!("No implemented strategies can further solve this board!");
     }
 }
 

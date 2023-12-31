@@ -1,5 +1,8 @@
 use core::fmt::Debug;
-use std::collections::{HashMap, HashSet};
+use std::{
+    collections::{HashMap, HashSet},
+    ops::RangeInclusive,
+};
 
 #[derive(Debug, Copy, Clone, PartialEq, Hash, Eq)]
 pub struct Coord {
@@ -41,6 +44,23 @@ impl Solution {
 impl std::fmt::Display for Solution {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}: {}", self.coord, self.value)
+    }
+}
+
+pub struct Reduction {
+    coord: Coord,
+    candidate: u8,
+}
+
+impl Reduction {
+    pub fn new(coord: Coord, candidate: u8) -> Self {
+        Self { coord, candidate }
+    }
+}
+
+impl std::fmt::Display for Reduction {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}: -{}", self.coord, self.candidate)
     }
 }
 
@@ -90,8 +110,22 @@ impl Region {
         self.coords.contains(coord)
     }
 
-    fn cell_coords(self: &Self) -> HashSet<Coord> {
+    fn contains_coords(self: &Self, coords: &HashSet<Coord>) -> bool {
+        coords.is_subset(&self.coords)
+    }
+
+    pub fn cell_coords(self: &Self) -> HashSet<Coord> {
         self.coords.clone()
+    }
+
+    pub fn cells_with_candidate(self: &Self, grid: &Grid, candidate: u8) -> HashSet<Coord> {
+        let mut coords: HashSet<Coord> = HashSet::new();
+        for cell in grid.cells_for_region(self) {
+            if cell.candidates.contains(&candidate) {
+                coords.insert(cell.coord);
+            }
+        }
+        coords
     }
 
     fn compute_coords(self: &mut Self, grid: &Grid) {
@@ -117,6 +151,12 @@ impl Region {
                 }
             }
         }
+    }
+}
+
+impl std::fmt::Display for Region {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{{{:?}, {:?}}}", self.kind, self.coords)
     }
 }
 
@@ -202,7 +242,14 @@ impl Grid {
             .collect()
     }
 
-    fn cells_for_region(self: &Self, region: &Region) -> Vec<&Cell> {
+    pub fn regions_for_coords(self: &Self, coords: &HashSet<Coord>) -> Vec<&Region> {
+        self.regions
+            .iter()
+            .filter(|r| r.contains_coords(coords))
+            .collect()
+    }
+
+    pub fn cells_for_region(self: &Self, region: &Region) -> Vec<&Cell> {
         let coords = region.cell_coords();
         self.cells
             .iter()
@@ -247,7 +294,7 @@ impl Grid {
         }
     }
 
-    pub fn apply(self: &mut Self, solutions: &[Solution]) {
+    pub fn apply_solutions(self: &mut Self, solutions: &[Solution]) {
         for solution in solutions {
             {
                 let cell = self.grid_cell(solution.coord);
@@ -265,8 +312,19 @@ impl Grid {
         }
     }
 
+    pub fn apply_reductions(self: &mut Self, reductions: &[Reduction]) {
+        for reduction in reductions {
+            let cell = self.grid_cell(reduction.coord);
+            cell.candidates.remove(&reduction.candidate);
+        }
+    }
+
     pub fn is_solved(self: &Self) -> bool {
         !self.cells.iter().any(|c| c.value.is_none())
+    }
+
+    pub fn possible_values(self: &Self) -> RangeInclusive<u8> {
+        return 1..=self.size;
     }
 }
 
