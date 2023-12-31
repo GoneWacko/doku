@@ -141,7 +141,7 @@ impl Grid {
     pub fn new(size: u8) -> Self {
         let mut grid = Grid {
             size,
-            cells: Vec::with_capacity((size * size) as usize),
+            cells: Vec::with_capacity(size as usize * size as usize),
             regions: Vec::new(),
         };
 
@@ -285,7 +285,19 @@ mod tests {
         }
     }
     #[test]
-
+    fn grid_of_sixteen_has_subgrids() {
+        let grid = Grid::new(16);
+        let squares: Vec<&Region> = grid
+            .regions
+            .iter()
+            .filter(|r| matches!(r, Region::Square(_))).collect();
+        let num_squares = squares.len();
+        assert_eq!(num_squares, 16);
+        if let Region::Square(square) = squares[0] {
+            assert_eq!(square.size, 4);
+        }
+    }
+    #[test]
     fn grid_of_twelve_does_not_have_subgrids() {
         let grid = Grid::new(12);
         let squares: Vec<&Region> = grid
