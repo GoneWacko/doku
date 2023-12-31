@@ -5,8 +5,6 @@ use crate::data::{Grid, Reduction, Region};
 
 pub struct RegionIntersection {}
 
-impl RegionIntersection {}
-
 impl ReduceStrategy for RegionIntersection {
     fn reduce_candidates(grid: &Grid) -> Vec<Reduction> {
         let mut reductions: Vec<Reduction> = Vec::new();
