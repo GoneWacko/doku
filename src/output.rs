@@ -23,7 +23,9 @@ pub fn output_candidates(grid: &Grid) {
     let _lock = stdout().lock();
     for cell in grid.cells.iter() {
         if cell.value.is_none() {
-            println!("{}: {:?}", cell.coord, cell.candidates);
+            let mut candidate_vec: Vec<u8> = cell.candidates.iter().cloned().collect();
+            candidate_vec.sort();
+            println!("{}: {:?}", cell.coord, candidate_vec);
         }
     }
 }
