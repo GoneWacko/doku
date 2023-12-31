@@ -30,6 +30,12 @@ pub struct Cell {
     is_given: bool,
 }
 
+impl Cell {
+    pub fn is_empty(&self) -> bool {
+        self.value.is_none()
+    }
+}
+
 pub struct Solution {
     coord: Coord,
     value: u8,

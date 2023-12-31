@@ -31,7 +31,7 @@ impl ReduceStrategy for RegionIntersection {
                 // if such a region exists: Remove the candidate value from the cells in that region that do not intersect with the current region and that do have it as a candidate.
                 for intersecting_region in intersecting_regions.iter() {
                     for cell in grid.cells_for_region(&intersecting_region) {
-                        if cell.value.is_none()
+                        if cell.is_empty()
                             && !cells_in_region_with_candidate.contains(&cell.coord)
                             && cell.candidates.contains(&candidate)
                         {
