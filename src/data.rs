@@ -67,24 +67,6 @@ pub enum RegionKind {
     Square(Square),
 }
 
-impl RegionKind {
-    fn contains(self: &Self, cell: &Cell) -> bool {
-        self.contains_coord(&cell.coord)
-    }
-
-    fn contains_coord(self: &Self, coord: &Coord) -> bool {
-        match self {
-            RegionKind::Row(row) => coord.y == row.y,
-            RegionKind::Column(column) => coord.x == column.x,
-            RegionKind::Square(subgrid) => {
-                let horizontal_range = subgrid.top_left.x..(subgrid.top_left.x + subgrid.size);
-                let vertical_range = subgrid.top_left.y..(subgrid.top_left.y + subgrid.size);
-                horizontal_range.contains(&coord.x) && vertical_range.contains(&coord.y)
-            }
-        }
-    }
-}
-
 #[derive(Debug, Clone)]
 pub struct Region {
     kind: RegionKind,
@@ -94,41 +76,40 @@ impl Region {
     pub fn new(kind: RegionKind, grid: &Grid) -> Self {
         let mut region = Self {
             kind,
-            coords: HashSet::new(),
+            coords: HashSet::with_capacity(grid.size as usize),
         };
         region.compute_coords(grid);
         region
     }
 
     fn contains(self: &Self, cell: &Cell) -> bool {
-        self.kind.contains(cell)
+        self.contains_coord(&cell.coord)
     }
 
     fn contains_coord(self: &Self, coord: &Coord) -> bool {
-        self.kind.contains_coord(coord)
+        self.coords.contains(coord)
     }
 
     fn cell_coords(self: &Self) -> HashSet<Coord> {
         self.coords.clone()
     }
 
-    fn compute_coords(self: &mut Self, grid: &Grid) -> HashSet<Coord> {
-        let mut coords: HashSet<Coord> = HashSet::with_capacity(grid.size as usize);
+    fn compute_coords(self: &mut Self, grid: &Grid) {
         match self.kind {
             RegionKind::Row(row) => {
                 for x in 0..grid.size {
-                    coords.insert(Coord { x, y: row.y });
+                    self.coords.insert(Coord { x, y: row.y });
                 }
             }
             RegionKind::Column(column) => {
                 for y in 0..grid.size {
-                    coords.insert(Coord { x: column.x, y });
+                    self.coords.insert(Coord { x: column.x, y });
                 }
             }
             RegionKind::Square(subgrid) => {
                 for y in 0..subgrid.size {
                     for x in 0..subgrid.size {
-                        coords.insert(Coord {
+                        self.coords.insert(Coord {
                             x: subgrid.top_left.x + x,
                             y: subgrid.top_left.y + y,
                         });
@@ -136,7 +117,6 @@ impl Region {
                 }
             }
         }
-        coords
     }
 }
 
