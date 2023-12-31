@@ -43,7 +43,7 @@ struct Column {
 }
 
 #[derive(Debug)]
-struct Subgrid {
+struct Square {
     size: u8,
     top_left: Coord,
 }
@@ -52,7 +52,7 @@ struct Subgrid {
 pub enum Region {
     Row(Row),
     Column(Column),
-    Subgrid(Subgrid),
+    Square(Square),
 }
 
 impl Region {
@@ -69,7 +69,7 @@ impl Region {
                     coords.insert(Coord { x: column.x, y });
                 }
             }
-            Region::Subgrid(subgrid) => {
+            Region::Square(subgrid) => {
                 for y in 0..subgrid.size {
                     for x in 0..subgrid.size {
                         coords.insert(Coord {
@@ -87,7 +87,7 @@ impl Region {
         match self {
             Region::Row(row) => cell.coord.y == row.y,
             Region::Column(column) => cell.coord.x == column.x,
-            Region::Subgrid(subgrid) => {
+            Region::Square(subgrid) => {
                 let horizontal_range = subgrid.top_left.x..(subgrid.top_left.x + subgrid.size);
                 let vertical_range = subgrid.top_left.y..(subgrid.top_left.y + subgrid.size);
                 horizontal_range.contains(&cell.coord.x) && vertical_range.contains(&cell.coord.y)
@@ -132,7 +132,7 @@ impl Grid {
             let subgrid_size = 3;
             for y in 0..subgrid_size {
                 for x in 0..subgrid_size {
-                    grid.regions.push(Region::Subgrid(Subgrid {
+                    grid.regions.push(Region::Square(Square {
                         size: subgrid_size,
                         top_left: Coord {
                             x: x * subgrid_size,
