@@ -55,6 +55,23 @@ pub enum Region {
     Square(Square),
 }
 
+pub struct Solution {
+    coord: Coord,
+    value: u8
+}
+
+impl Solution {
+    pub fn new(coord: Coord, value: u8) -> Solution {
+        Solution{coord, value}
+    }
+}
+
+impl std::fmt::Display for Solution {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}: {}", self.coord, self.value)
+    }
+}
+
 impl Region {
     // TODO This should be computed once when the region is created and kept in memory.
     //  We should probably switch to structs instead of an enum? But then we probably end up in dynamic dispatch territory...

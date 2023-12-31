@@ -1,15 +1,22 @@
 mod data;
 mod output;
+mod strategies;
 
 use data::Coord;
+use strategies::naked_single::NakedSingle;
+use strategies::SolveStrategy;
 
 use std::fs;
 
 fn main() {
     let mut grid = load_puzzle("puzzles/very_easy_2.txt");
     grid.compute_candidates();
+
     output::output_grid(&grid);
-    output::output_candidates(&grid)
+    output::output_candidates(&grid);
+
+    let solutions = NakedSingle::solutions(&grid);
+    solutions.iter().for_each(|s| println!("{s}"));
 }
 
 fn load_puzzle(file_path: &str) -> data::Grid {
