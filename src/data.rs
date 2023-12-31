@@ -1,6 +1,5 @@
 use core::fmt::Debug;
 use std::collections::{HashMap, HashSet};
-use std::vec::Vec;
 
 #[derive(Debug, Copy, Clone, PartialEq, Hash, Eq)]
 pub struct Coord {
