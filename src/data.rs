@@ -126,6 +126,17 @@ pub struct Grid {
     pub regions: Vec<Region>,
 }
 
+/// Returns the subgrid size if the square root of the grid size is a whole number
+fn subgrid_size(size: u8) -> Option<u8> {
+    let square_root = (size as f32).sqrt();
+    let integer_part = square_root.trunc();
+    if square_root == integer_part {
+        Some(integer_part as u8)
+    } else {
+        None
+    }
+}
+
 impl Grid {
     pub fn new(size: u8) -> Self {
         let mut grid = Grid {
@@ -149,18 +160,12 @@ impl Grid {
             grid.regions.push(Region::Column(Column { x: y }));
         }
 
-        // TODO Make this more generic; It should be something like:
-        //  "if the square root is a round number, let that be the subgrid size"
-        if size == 9 {
-            let subgrid_size = 3;
-            for y in 0..subgrid_size {
-                for x in 0..subgrid_size {
+        if let Some(s) = subgrid_size(size) {
+            for y in 0..s {
+                for x in 0..s {
                     grid.regions.push(Region::Square(Square {
-                        size: subgrid_size,
-                        top_left: Coord {
-                            x: x * subgrid_size,
-                            y: y * subgrid_size,
-                        },
+                        size: s,
+                        top_left: Coord { x: x * s, y: y * s },
                     }));
                 }
             }
@@ -261,3 +266,33 @@ impl Grid {
 
 // Calculate candidates:
 //  - for each cell, get all regions, then get all given values in those regions, the take the complement of those values as candidates.
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn grid_of_nine_has_subgrids() {
+        let grid = Grid::new(9);
+        let squares: Vec<&Region> = grid
+            .regions
+            .iter()
+            .filter(|r| matches!(r, Region::Square(_))).collect();
+        let num_squares = squares.len();
+        assert_eq!(num_squares, 9);
+        if let Region::Square(square) = squares[0] {
+            assert_eq!(square.size, 3);
+        }
+    }
+    #[test]
+
+    fn grid_of_twelve_does_not_have_subgrids() {
+        let grid = Grid::new(12);
+        let squares: Vec<&Region> = grid
+            .regions
+            .iter()
+            .filter(|r| matches!(r, Region::Square(_))).collect();
+        let num_squares = squares.len();
+        assert_eq!(num_squares, 0);
+    }
+}
