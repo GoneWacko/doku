@@ -255,7 +255,7 @@ impl Grid {
     }
 
     pub fn is_solved(self: &Self) -> bool {
-        ! self.cells.iter().any(|c| c.value.is_none())
+        !self.cells.iter().any(|c| c.value.is_none())
     }
 }
 
