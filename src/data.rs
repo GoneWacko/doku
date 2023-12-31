@@ -27,33 +27,6 @@ pub struct Cell {
     is_given: bool,
 }
 
-// trait Region {
-//     fn cell_coords(self, grid: &Grid) -> Vec<Coord>;
-// }
-
-#[derive(Debug, Copy, Clone)]
-struct Row {
-    y: u8,
-}
-
-#[derive(Debug, Copy, Clone)]
-struct Column {
-    x: u8,
-}
-
-#[derive(Debug, Copy, Clone)]
-struct Square {
-    size: u8,
-    top_left: Coord,
-}
-
-#[derive(Debug, Copy, Clone)]
-pub enum Region {
-    Row(Row),
-    Column(Column),
-    Square(Square),
-}
-
 pub struct Solution {
     coord: Coord,
     value: u8,
@@ -71,23 +44,88 @@ impl std::fmt::Display for Solution {
     }
 }
 
-impl Region {
-    // TODO This should be computed once when the region is created and kept in memory.
-    //  We should probably switch to structs instead of an enum? But then we probably end up in dynamic dispatch territory...
-    pub fn cell_coords(self: &Self, grid: &Grid) -> HashSet<Coord> {
-        let mut coords: HashSet<Coord> = HashSet::with_capacity(grid.size as usize);
+#[derive(Debug, Copy, Clone)]
+pub struct Row {
+    y: u8,
+}
+
+#[derive(Debug, Copy, Clone)]
+pub struct Column {
+    x: u8,
+}
+
+#[derive(Debug, Copy, Clone)]
+pub struct Square {
+    size: u8,
+    top_left: Coord,
+}
+
+#[derive(Debug, Clone)]
+pub enum RegionKind {
+    Row(Row),
+    Column(Column),
+    Square(Square),
+}
+
+impl RegionKind {
+    fn contains(self: &Self, cell: &Cell) -> bool {
+        self.contains_coord(&cell.coord)
+    }
+
+    fn contains_coord(self: &Self, coord: &Coord) -> bool {
         match self {
-            Region::Row(row) => {
+            RegionKind::Row(row) => coord.y == row.y,
+            RegionKind::Column(column) => coord.x == column.x,
+            RegionKind::Square(subgrid) => {
+                let horizontal_range = subgrid.top_left.x..(subgrid.top_left.x + subgrid.size);
+                let vertical_range = subgrid.top_left.y..(subgrid.top_left.y + subgrid.size);
+                horizontal_range.contains(&coord.x) && vertical_range.contains(&coord.y)
+            }
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct Region {
+    kind: RegionKind,
+    coords: HashSet<Coord>,
+}
+impl Region {
+    pub fn new(kind: RegionKind, grid: &Grid) -> Region {
+        let mut region = Region {
+            kind,
+            coords: HashSet::new(),
+        };
+        region.compute_coords(grid);
+        region
+    }
+
+    fn contains(self: &Self, cell: &Cell) -> bool {
+        self.kind.contains(cell)
+    }
+
+    fn contains_coord(self: &Self, coord: &Coord) -> bool {
+        self.kind.contains_coord(coord)
+    }
+
+    fn cell_coords(self: &Self) -> HashSet<Coord> {
+        self.coords.clone()
+    }
+
+    fn compute_coords(self: &mut Self, grid: &Grid) -> HashSet<Coord> {
+        let mut coords: HashSet<Coord> = HashSet::with_capacity(grid.size as usize);
+        match self.kind {
+            RegionKind::Row(row) => {
                 for x in 0..grid.size {
                     coords.insert(Coord { x, y: row.y });
                 }
             }
-            Region::Column(column) => {
+            RegionKind::Column(column) => {
                 for y in 0..grid.size {
                     coords.insert(Coord { x: column.x, y });
                 }
             }
-            Region::Square(subgrid) => {
+            RegionKind::Square(subgrid) => {
                 for y in 0..subgrid.size {
                     for x in 0..subgrid.size {
                         coords.insert(Coord {
@@ -99,22 +137,6 @@ impl Region {
             }
         }
         coords
-    }
-
-    fn contains(self: &Self, cell: &Cell) -> bool {
-        self.contains_coord(&cell.coord)
-    }
-
-    fn contains_coord(self: &Self, coord: &Coord) -> bool {
-        match self {
-            Region::Row(row) => coord.y == row.y,
-            Region::Column(column) => coord.x == column.x,
-            Region::Square(subgrid) => {
-                let horizontal_range = subgrid.top_left.x..(subgrid.top_left.x + subgrid.size);
-                let vertical_range = subgrid.top_left.y..(subgrid.top_left.y + subgrid.size);
-                horizontal_range.contains(&coord.x) && vertical_range.contains(&coord.y)
-            }
-        }
     }
 }
 
@@ -155,17 +177,22 @@ impl Grid {
             }
 
             // Since we're iterating over the size anyway we can set up our row & column regions here:
-            grid.regions.push(Region::Row(Row { y }));
-            grid.regions.push(Region::Column(Column { x: y }));
+            grid.regions
+                .push(Region::new(RegionKind::Row(Row { y }), &grid));
+            grid.regions
+                .push(Region::new(RegionKind::Column(Column { x: y }), &grid));
         }
 
         if let Some(s) = subgrid_size(size) {
             for y in 0..s {
                 for x in 0..s {
-                    grid.regions.push(Region::Square(Square {
-                        size: s,
-                        top_left: Coord { x: x * s, y: y * s },
-                    }));
+                    grid.regions.push(Region::new(
+                        RegionKind::Square(Square {
+                            size: s,
+                            top_left: Coord { x: x * s, y: y * s },
+                        }),
+                        &grid,
+                    ));
                 }
             }
         }
@@ -196,14 +223,14 @@ impl Grid {
     }
 
     fn cells_for_region(self: &Self, region: &Region) -> Vec<&Cell> {
-        let coords = region.cell_coords(self);
+        let coords = region.cell_coords();
         self.cells
             .iter()
             .filter(|cell| coords.contains(&cell.coord))
             .collect()
     }
     fn cells_for_region_mut(self: &mut Self, region: &Region) -> Vec<&mut Cell> {
-        let coords = region.cell_coords(self);
+        let coords = region.cell_coords();
         self.cells
             .iter_mut()
             .filter(|cell| coords.contains(&cell.coord))
@@ -276,11 +303,11 @@ mod tests {
         let squares: Vec<&Region> = grid
             .regions
             .iter()
-            .filter(|r| matches!(r, Region::Square(_)))
+            .filter(|r| matches!(r.kind, RegionKind::Square(_)))
             .collect();
         let num_squares = squares.len();
         assert_eq!(num_squares, 9);
-        if let Region::Square(square) = squares[0] {
+        if let RegionKind::Square(square) = squares[0].kind {
             assert_eq!(square.size, 3);
         }
     }
@@ -290,11 +317,11 @@ mod tests {
         let squares: Vec<&Region> = grid
             .regions
             .iter()
-            .filter(|r| matches!(r, Region::Square(_)))
+            .filter(|r| matches!(r.kind, RegionKind::Square(_)))
             .collect();
         let num_squares = squares.len();
         assert_eq!(num_squares, 16);
-        if let Region::Square(square) = squares[0] {
+        if let RegionKind::Square(square) = squares[0].kind {
             assert_eq!(square.size, 4);
         }
     }
@@ -304,7 +331,7 @@ mod tests {
         let squares: Vec<&Region> = grid
             .regions
             .iter()
-            .filter(|r| matches!(r, Region::Square(_)))
+            .filter(|r| matches!(r.kind, RegionKind::Square(_)))
             .collect();
         let num_squares = squares.len();
         assert_eq!(num_squares, 0);
