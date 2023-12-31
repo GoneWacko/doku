@@ -3,54 +3,31 @@ mod output;
 
 use data::Coord;
 
+use std::fs;
+
 fn main() {
-    let mut grid = dbg!(data::Grid::new(9));
-
-    grid.set_given_value(Coord::new(1, 0), 2);
-    grid.set_given_value(Coord::new(2, 0), 1);
-    grid.set_given_value(Coord::new(3, 0), 6);
-    grid.set_given_value(Coord::new(6, 0), 4);
-    grid.set_given_value(Coord::new(7, 0), 9);
-    grid.set_given_value(Coord::new(0, 1), 3);
-    grid.set_given_value(Coord::new(1, 1), 8);
-    grid.set_given_value(Coord::new(3, 1), 1);
-    grid.set_given_value(Coord::new(4, 1), 9);
-    grid.set_given_value(Coord::new(5, 1), 4);
-    grid.set_given_value(Coord::new(0, 2), 5);
-    grid.set_given_value(Coord::new(4, 2), 7);
-    grid.set_given_value(Coord::new(1, 3), 4);
-    grid.set_given_value(Coord::new(2, 3), 5);
-    grid.set_given_value(Coord::new(3, 3), 7);
-    grid.set_given_value(Coord::new(5, 3), 2);
-    grid.set_given_value(Coord::new(6, 3), 1);
-    grid.set_given_value(Coord::new(0, 4), 9);
-    grid.set_given_value(Coord::new(1, 4), 6);
-    grid.set_given_value(Coord::new(4, 4), 5);
-    grid.set_given_value(Coord::new(7, 4), 7);
-    grid.set_given_value(Coord::new(8, 4), 4);
-    grid.set_given_value(Coord::new(2, 5), 2);
-    grid.set_given_value(Coord::new(3, 5), 3);
-    grid.set_given_value(Coord::new(5, 5), 9);
-    grid.set_given_value(Coord::new(6, 5), 8);
-    grid.set_given_value(Coord::new(7, 5), 5);
-    grid.set_given_value(Coord::new(2, 6), 9);
-    grid.set_given_value(Coord::new(4, 6), 2);
-    grid.set_given_value(Coord::new(8, 6), 8);
-    grid.set_given_value(Coord::new(3, 7), 9);
-    grid.set_given_value(Coord::new(4, 7), 3);
-    grid.set_given_value(Coord::new(5, 7), 6);
-    grid.set_given_value(Coord::new(7, 7), 4);
-    grid.set_given_value(Coord::new(8, 7), 5);
-    grid.set_given_value(Coord::new(1, 8), 3);
-    grid.set_given_value(Coord::new(2, 8), 7);
-    grid.set_given_value(Coord::new(5, 8), 8);
-    grid.set_given_value(Coord::new(6, 8), 9);
-    grid.set_given_value(Coord::new(7, 8), 6);
-
+    let mut grid = load_puzzle("puzzles/very_easy_2.txt");
     grid.compute_candidates();
-
     output::output_grid(&grid);
     output::output_candidates(&grid)
+}
+
+fn load_puzzle(file_path: &str) -> data::Grid {
+    let mut grid = data::Grid::new(9);
+    let contents = fs::read_to_string(file_path).expect("Should have been able to read the file");
+    let mut y = 0;
+    for line in contents.lines() {
+        let mut x = 0;
+        for c in line.split(' ') {
+            if c != "." {
+                let v: u8 = c.parse().expect("The value should have been a number");
+                grid.set_given_value(Coord::new(x, y), v)
+            }
+            x += 1;
+        }
+        y += 1;
+    }
+    grid
 }
 
 // Set up data structure: x * x cells, n regions
