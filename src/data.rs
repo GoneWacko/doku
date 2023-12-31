@@ -277,7 +277,8 @@ mod tests {
         let squares: Vec<&Region> = grid
             .regions
             .iter()
-            .filter(|r| matches!(r, Region::Square(_))).collect();
+            .filter(|r| matches!(r, Region::Square(_)))
+            .collect();
         let num_squares = squares.len();
         assert_eq!(num_squares, 9);
         if let Region::Square(square) = squares[0] {
@@ -290,7 +291,8 @@ mod tests {
         let squares: Vec<&Region> = grid
             .regions
             .iter()
-            .filter(|r| matches!(r, Region::Square(_))).collect();
+            .filter(|r| matches!(r, Region::Square(_)))
+            .collect();
         let num_squares = squares.len();
         assert_eq!(num_squares, 16);
         if let Region::Square(square) = squares[0] {
@@ -303,7 +305,8 @@ mod tests {
         let squares: Vec<&Region> = grid
             .regions
             .iter()
-            .filter(|r| matches!(r, Region::Square(_))).collect();
+            .filter(|r| matches!(r, Region::Square(_)))
+            .collect();
         let num_squares = squares.len();
         assert_eq!(num_squares, 0);
     }
