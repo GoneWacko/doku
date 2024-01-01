@@ -3,8 +3,8 @@ mod output;
 mod strategies;
 
 use data::Coord;
-use strategies::naked_single::NakedSingle;
 use strategies::region_intersection::RegionIntersection;
+use strategies::single::Single;
 use strategies::ReduceStrategy;
 use strategies::SolveStrategy;
 
@@ -20,8 +20,8 @@ fn main() {
     while !grid.is_solved() {
         i += 1;
         println!();
-        println!("Trying NakedSingles");
-        let solutions = NakedSingle::solutions(&grid);
+        println!("Trying singles");
+        let solutions = Single::solutions(&grid);
         if !solutions.is_empty() {
             println!("### ({i}) Found solutions:");
             solutions.iter().for_each(|s| println!("{s}"));
@@ -29,7 +29,7 @@ fn main() {
             print_board(&grid, i);
             continue;
         }
-        println!("No naked singles found.");
+        println!("No singles found.");
         println!("Trying intersection reduction");
         let reductions = RegionIntersection::reduce_candidates(&grid);
         if !reductions.is_empty() {
