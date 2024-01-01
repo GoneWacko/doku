@@ -9,10 +9,16 @@ use strategies::single::Single;
 use strategies::ReduceStrategy;
 use strategies::SolveStrategy;
 
+use std::env;
 use std::fs;
 
 fn main() {
-    let mut grid = load_puzzle("puzzles/naked_pair.txt");
+    let mut file_path_arg = env::args().skip(1).take(1);
+    let file_path: String = file_path_arg
+        .next()
+        .unwrap_or(String::from("puzzles/intersection.txt"));
+
+    let mut grid = load_puzzle(file_path.as_str());
     grid.compute_candidates();
 
     println!("### Initial grid:");
