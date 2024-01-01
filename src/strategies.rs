@@ -1,3 +1,4 @@
+pub mod naked_pair;
 pub mod region_intersection;
 pub mod single;
 
