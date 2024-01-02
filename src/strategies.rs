@@ -1,5 +1,6 @@
 pub mod naked_pair;
 pub mod region_intersection;
+pub mod simple_link;
 pub mod single;
 
 use crate::data::{Grid, Reduction, Solution};

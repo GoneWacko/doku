@@ -5,6 +5,7 @@ mod strategies;
 use data::{Coord, Grid};
 use strategies::naked_pair::NakedPair;
 use strategies::region_intersection::RegionIntersection;
+use strategies::simple_link::SimpleLink;
 use strategies::single::Single;
 use strategies::ReduceStrategy;
 use strategies::SolveStrategy;
@@ -43,6 +44,12 @@ fn main() {
             continue;
         }
         println!("No naked pairs found.");
+        // This only makes sense in a Sudoku board that has extra regions besides the classic rows/columns/squares...
+        println!("Trying simple links");
+        if SimpleLink::try_reduction(&mut grid) {
+            continue;
+        }
+        println!("No simple links found.");
         print_board(&grid, i);
         panic!("No implemented strategies can further solve this board!");
     }

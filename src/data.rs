@@ -70,30 +70,30 @@ impl std::fmt::Display for Reduction {
     }
 }
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq)]
 pub struct Row {
     y: u8,
 }
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq)]
 pub struct Column {
     x: u8,
 }
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq)]
 pub struct Square {
     size: u8,
     top_left: Coord,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Eq, PartialEq)]
 pub enum RegionKind {
     Row(Row),
     Column(Column),
     Square(Square),
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Eq, PartialEq)]
 pub struct Region {
     kind: RegionKind,
     coords: HashSet<Coord>,
@@ -108,15 +108,15 @@ impl Region {
         region
     }
 
-    fn contains(self: &Self, cell: &Cell) -> bool {
+    pub fn contains(self: &Self, cell: &Cell) -> bool {
         self.contains_coord(&cell.coord)
     }
 
-    fn contains_coord(self: &Self, coord: &Coord) -> bool {
+    pub fn contains_coord(self: &Self, coord: &Coord) -> bool {
         self.coords.contains(coord)
     }
 
-    fn contains_coords(self: &Self, coords: &HashSet<Coord>) -> bool {
+    pub fn contains_coords(self: &Self, coords: &HashSet<Coord>) -> bool {
         coords.is_subset(&self.coords)
     }
 
@@ -127,7 +127,7 @@ impl Region {
     pub fn cells_with_candidate(self: &Self, grid: &Grid, candidate: u8) -> HashSet<Coord> {
         let mut coords: HashSet<Coord> = HashSet::new();
         for cell in grid.cells_for_region(self) {
-            if cell.candidates.contains(&candidate) {
+            if cell.is_empty() && cell.candidates.contains(&candidate) {
                 coords.insert(cell.coord);
             }
         }
@@ -162,7 +162,7 @@ impl Region {
 
 impl std::fmt::Display for Region {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{{{:?}, {:?}}}", self.kind, self.coords)
+        write!(f, "{:?}", self.kind)
     }
 }
 
@@ -240,7 +240,7 @@ impl Grid {
         self.regions.iter().filter(|r| r.contains(cell)).collect()
     }
 
-    fn regions_for_coord(self: &Self, coord: &Coord) -> Vec<Region> {
+    pub fn regions_for_coord(self: &Self, coord: &Coord) -> Vec<Region> {
         self.regions
             .iter()
             .filter(|r| r.contains_coord(coord))
