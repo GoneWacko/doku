@@ -325,6 +325,19 @@ impl Grid {
         }
     }
 
+    pub fn add_extra_square(self: &mut Self, x: u8, y: u8) {
+        let square_size = subgrid_size(self.size)
+            .expect("Extra squares require that the grid size allows for them.");
+        let square = Region::new(
+            RegionKind::Square(Square {
+                size: square_size,
+                top_left: Coord::new(x, y),
+            }),
+            &self,
+        );
+        self.regions.push(square);
+    }
+
     pub fn is_solved(self: &Self) -> bool {
         !self.cells.iter().any(|c| c.value.is_none())
     }
