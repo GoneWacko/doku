@@ -46,6 +46,16 @@ fn main() {
     }
     println!("Solved:");
     print_board(&grid, i);
+    match grid.validate() {
+        Ok(()) => {
+            println!("The solution is valid!");
+            std::process::exit(0);
+        }
+        Err((msg, coord)) => {
+            println!("There was an error with the cell at {}: {}", coord, msg);
+            std::process::exit(1)
+        }
+    }
 }
 
 fn print_board(grid: &Grid, i: u32) {

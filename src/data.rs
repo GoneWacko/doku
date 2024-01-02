@@ -329,6 +329,22 @@ impl Grid {
         !self.cells.iter().any(|c| c.value.is_none())
     }
 
+    pub fn validate(self: &Self) -> Result<(), (&'static str, Coord)> {
+        for region in self.regions.iter() {
+            let mut found_values: HashSet<u8> = HashSet::with_capacity(self.size as usize);
+            for cell in self.cells_for_region(region).iter() {
+                if cell.is_empty() {
+                    return Err(("A cell has no value.", cell.coord));
+                }
+                if !found_values.insert(cell.value.unwrap()) {
+                    return Err(("A value occurs twice in a region", cell.coord));
+                }
+            }
+            assert_eq!(found_values.len(), self.size as usize);
+        }
+        Ok(())
+    }
+
     pub fn possible_values(self: &Self) -> RangeInclusive<u8> {
         return 1..=self.size;
     }
