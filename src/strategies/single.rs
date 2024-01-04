@@ -13,10 +13,7 @@ impl SolveStrategy for Single {
         let mut found: Vec<Solution> = Vec::new();
         for cell in grid.cells.iter() {
             if cell.is_empty() && cell.candidates.len() == 1 {
-                let value = cell
-                    .candidates
-                    .iter()
-                    .next().unwrap();
+                let value = cell.candidates.iter().next().unwrap();
                 found.push(Solution::new(cell.coord, *value));
             }
         }

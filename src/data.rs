@@ -173,14 +173,13 @@ pub struct Grid {
     pub regions: Vec<Region>,
 }
 
-/// Returns the subgrid size if the square root of the grid size is a whole number
-fn subgrid_size(size: u8) -> Option<u8> {
+fn subgrid_size(size: u8) -> Result<u8, &'static str> {
     let square_root = (size as f32).sqrt();
     let integer_part = square_root.trunc();
     if square_root == integer_part {
-        Some(integer_part as u8)
+        Ok(integer_part as u8)
     } else {
-        None
+        Err("Sudokus of the given size cannot be square")
     }
 }
 
@@ -209,17 +208,19 @@ impl Grid {
                 .push(Region::new(RegionKind::Column(Column { x: y }), &grid));
         }
 
-        if let Some(s) = subgrid_size(size) {
-            for y in 0..s {
-                for x in 0..s {
-                    grid.regions.push(Region::new(
-                        RegionKind::Square(Square {
-                            size: s,
-                            top_left: Coord { x: x * s, y: y * s },
-                        }),
-                        &grid,
-                    ));
-                }
+        let subgrid_size = subgrid_size(size).expect("Expected a valid sudoku grid size");
+        for y in 0..subgrid_size {
+            for x in 0..subgrid_size {
+                grid.regions.push(Region::new(
+                    RegionKind::Square(Square {
+                        size: subgrid_size,
+                        top_left: Coord {
+                            x: x * subgrid_size,
+                            y: y * subgrid_size,
+                        },
+                    }),
+                    &grid,
+                ));
             }
         }
 
@@ -327,7 +328,7 @@ impl Grid {
 
     pub fn add_extra_square(self: &mut Self, x: u8, y: u8) {
         let square_size = subgrid_size(self.size)
-            .expect("Extra squares require that the grid size allows for them.");
+            .expect("Extra squares require a square grid");
         let square = Region::new(
             RegionKind::Square(Square {
                 size: square_size,
