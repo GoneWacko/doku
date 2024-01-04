@@ -16,8 +16,7 @@ impl SolveStrategy for Single {
                 let value = cell
                     .candidates
                     .iter()
-                    .next()
-                    .expect("The candidates set should contain at least one value");
+                    .next().unwrap();
                 found.push(Solution::new(cell.coord, *value));
             }
         }
