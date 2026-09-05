@@ -16,7 +16,7 @@
 - **`src/main.rs`**: Entry point and solving loop.
   - Parses CLI arguments to select the puzzle file.
   - Loads puzzle files via `load_puzzle`.
-  - Loops over solving and reduction strategies sequentially (`Single` -> `RegionIntersection` -> `NakedPair` -> `SimpleLink`) until the grid is solved or stuck.
+  - Loops over solving and reduction strategies sequentially (`Single` -> `RegionIntersection` -> `NakedTuple` -> `SimpleLink`) until the grid is solved or stuck.
   - Validates the final solved grid via `grid.validate()`.
 - **`src/data.rs`**: Core data models.
   - `Coord`: Zero-indexed `(x, y)` grid coordinates.
@@ -30,7 +30,7 @@
   - `ReduceStrategy`: Generates candidate eliminations (`Vec<Reduction>`).
 - **`src/strategies/`**: Concrete strategy implementations.
   - `single.rs` (`Single`): Finds cells with only one remaining candidate.
-  - `naked_pair.rs` (`NakedPair`): Identifies two cells in a region sharing identical two candidates and eliminates those candidates from other cells in that region.
+  - `naked_tuple.rs` (`NakedTuple`): Identifies naked subsets of size N (pairs, triples, quads) sharing N candidates within a region and eliminates those candidates from other cells in that region.
   - `region_intersection.rs` (`RegionIntersection`): Intersections between regions (pointing/claiming) where candidates restricted to an intersection eliminate candidates in the rest of the intersecting region.
   - `simple_link.rs` (`SimpleLink`): Two-cell candidate links across intersecting regions (useful in puzzles with overlapping/extra regions).
 - **`src/output.rs`**: Formats the grid and candidate lists for terminal output.

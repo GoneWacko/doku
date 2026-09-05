@@ -1,4 +1,4 @@
-pub mod naked_pair;
+pub mod naked_tuple;
 pub mod region_intersection;
 pub mod simple_link;
 pub mod single;

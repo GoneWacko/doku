@@ -36,9 +36,10 @@ impl Cell {
     }
 }
 
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct Solution {
-    coord: Coord,
-    value: u8,
+    pub coord: Coord,
+    pub value: u8,
 }
 
 impl Solution {
@@ -53,9 +54,10 @@ impl std::fmt::Display for Solution {
     }
 }
 
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct Reduction {
-    coord: Coord,
-    candidate: u8,
+    pub coord: Coord,
+    pub candidate: u8,
 }
 
 impl Reduction {

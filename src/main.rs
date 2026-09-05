@@ -3,7 +3,7 @@ mod output;
 mod strategies;
 
 use data::{Coord, Grid};
-use strategies::naked_pair::NakedPair;
+use strategies::naked_tuple::NakedTuple;
 use strategies::region_intersection::RegionIntersection;
 use strategies::simple_link::SimpleLink;
 use strategies::single::Single;
@@ -39,11 +39,11 @@ fn main() {
             continue;
         }
         println!("No intersections found.");
-        println!("Trying naked pair reduction");
-        if NakedPair::try_reduction(&mut grid) {
+        println!("Trying naked tuples");
+        if NakedTuple::try_reduction(&mut grid) {
             continue;
         }
-        println!("No naked pairs found.");
+        println!("No naked tuples found.");
         // This only makes sense in a Sudoku board that has extra regions besides the classic rows/columns/squares...
         println!("Trying simple links");
         if SimpleLink::try_reduction(&mut grid) {
