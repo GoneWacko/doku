@@ -402,14 +402,8 @@ mod tests {
         }
     }
     #[test]
-    fn grid_of_twelve_does_not_have_subgrids() {
-        let grid = Grid::new(12);
-        let squares: Vec<&Region> = grid
-            .regions
-            .iter()
-            .filter(|r| matches!(r.kind, RegionKind::Square(_)))
-            .collect();
-        let num_squares = squares.len();
-        assert_eq!(num_squares, 0);
+    #[should_panic(expected = "Expected a valid sudoku grid size")]
+    fn grid_of_twelve_is_invalid() {
+        Grid::new(12);
     }
 }

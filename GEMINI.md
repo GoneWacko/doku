@@ -8,7 +8,6 @@
 - **Run (default puzzle)**: `cargo run` (loads a hardcoded default puzzle configured in `src/main.rs`)
 - **Run (specific puzzle)**: `cargo run puzzles/<puzzle_file>.txt`
 - **Run Tests**: `cargo test`
-  - *Note*: `data::tests::grid_of_twelve_does_not_have_subgrids` currently fails because `Grid::new` enforces that grid sizes must have an integer square root.
 - **Lint / Check**: `cargo clippy` or `cargo check`
 
 ## Architecture Overview
