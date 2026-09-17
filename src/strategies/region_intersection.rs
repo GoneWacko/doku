@@ -30,11 +30,11 @@ impl ReduceStrategy for RegionIntersection {
                     .regions_for_coords(&cells_in_region_with_candidate)
                     .iter()
                     .filter(|&r| !ptr::eq(*r, region as *const Region))
-                    .map(|r| *r)
+                    .copied()
                     .collect();
                 // if such a region exists: Remove the candidate value from the cells in that region that do not intersect with the current region and that do have it as a candidate.
                 for intersecting_region in intersecting_regions.iter() {
-                    for cell in grid.cells_for_region(&intersecting_region) {
+                    for cell in grid.cells_for_region(intersecting_region) {
                         if cell.is_empty()
                             && !cells_in_region_with_candidate.contains(&cell.coord)
                             && cell.candidates.contains(&candidate)

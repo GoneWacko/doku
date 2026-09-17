@@ -69,9 +69,9 @@ fn main() {
 
 fn print_board(grid: &Grid, i: u32) {
     println!("### ({i}) Current board state:");
-    output::output_grid(&grid);
+    output::output_grid(grid);
     println!("### ({i}) Candidates:");
-    output::output_candidates(&grid);
+    output::output_candidates(grid);
 }
 
 fn load_puzzle(file_path: &str) -> Grid {
@@ -100,7 +100,7 @@ fn load_puzzle(file_path: &str) -> Grid {
             highest_x = x as u8;
             if c != "." {
                 let v: u8 = c.parse().expect("The value should have been a number");
-                grid.set_given_value(Coord::new(x as u8, y as u8), v);
+                grid.set_given_value(Coord::new(x as u8, y), v);
             }
         }
         assert_eq!(highest_x, size - 1);

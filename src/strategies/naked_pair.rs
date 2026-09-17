@@ -40,7 +40,7 @@ impl ReduceStrategy for NakedPair {
                             "At most one cell sharing the same set of candidates should be found"
                         );
                     }
-                    let paired_cell = shared_cells.get(0).unwrap();
+                    let paired_cell = shared_cells.first().unwrap();
                     visited.insert(cell.coord);
                     visited.insert(paired_cell.coord);
                     for other_cell in cells

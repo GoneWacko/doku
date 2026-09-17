@@ -108,23 +108,23 @@ impl Region {
         region
     }
 
-    pub fn contains(self: &Self, cell: &Cell) -> bool {
+    pub fn contains(&self, cell: &Cell) -> bool {
         self.contains_coord(&cell.coord)
     }
 
-    pub fn contains_coord(self: &Self, coord: &Coord) -> bool {
+    pub fn contains_coord(&self, coord: &Coord) -> bool {
         self.coords.contains(coord)
     }
 
-    pub fn contains_coords(self: &Self, coords: &HashSet<Coord>) -> bool {
+    pub fn contains_coords(&self, coords: &HashSet<Coord>) -> bool {
         coords.is_subset(&self.coords)
     }
 
-    pub fn cell_coords(self: &Self) -> HashSet<Coord> {
+    pub fn cell_coords(&self) -> HashSet<Coord> {
         self.coords.clone()
     }
 
-    pub fn cells_with_candidate(self: &Self, grid: &Grid, candidate: u8) -> HashSet<Coord> {
+    pub fn cells_with_candidate(&self, grid: &Grid, candidate: u8) -> HashSet<Coord> {
         let mut coords: HashSet<Coord> = HashSet::new();
         for cell in grid.cells_for_region(self) {
             if cell.is_empty() && cell.candidates.contains(&candidate) {
@@ -134,7 +134,7 @@ impl Region {
         coords
     }
 
-    fn compute_coords(self: &mut Self, grid: &Grid) {
+    fn compute_coords(&mut self, grid: &Grid) {
         match self.kind {
             RegionKind::Row(row) => {
                 for x in 0..grid.size {
@@ -227,21 +227,21 @@ impl Grid {
         grid
     }
 
-    fn coord_to_cell_index(self: &Self, coord: &Coord) -> usize {
+    fn coord_to_cell_index(&self, coord: &Coord) -> usize {
         (coord.x + self.size * coord.y) as usize
     }
 
-    pub fn set_given_value(self: &mut Self, coord: Coord, value: u8) {
+    pub fn set_given_value(&mut self, coord: Coord, value: u8) {
         let index = self.coord_to_cell_index(&coord);
         self.cells[index].value = Some(value);
         self.cells[index].is_given = true;
     }
 
-    fn regions_for_cell(self: &Self, cell: &Cell) -> Vec<&Region> {
+    fn regions_for_cell(&self, cell: &Cell) -> Vec<&Region> {
         self.regions.iter().filter(|r| r.contains(cell)).collect()
     }
 
-    pub fn regions_for_coord(self: &Self, coord: &Coord) -> Vec<Region> {
+    pub fn regions_for_coord(&self, coord: &Coord) -> Vec<Region> {
         self.regions
             .iter()
             .filter(|r| r.contains_coord(coord))
@@ -249,21 +249,21 @@ impl Grid {
             .collect()
     }
 
-    pub fn regions_for_coords(self: &Self, coords: &HashSet<Coord>) -> Vec<&Region> {
+    pub fn regions_for_coords(&self, coords: &HashSet<Coord>) -> Vec<&Region> {
         self.regions
             .iter()
             .filter(|r| r.contains_coords(coords))
             .collect()
     }
 
-    pub fn cells_for_region(self: &Self, region: &Region) -> Vec<&Cell> {
+    pub fn cells_for_region(&self, region: &Region) -> Vec<&Cell> {
         let coords = region.cell_coords();
         self.cells
             .iter()
             .filter(|cell| coords.contains(&cell.coord))
             .collect()
     }
-    fn cells_for_region_mut(self: &mut Self, region: &Region) -> Vec<&mut Cell> {
+    fn cells_for_region_mut(&mut self, region: &Region) -> Vec<&mut Cell> {
         let coords = region.cell_coords();
         self.cells
             .iter_mut()
@@ -271,23 +271,23 @@ impl Grid {
             .collect()
     }
 
-    fn grid_cell(self: &mut Self, coord: Coord) -> &mut Cell {
+    fn grid_cell(&mut self, coord: Coord) -> &mut Cell {
         self.cells
             .get_mut(coord.x as usize + coord.y as usize * self.size as usize)
             .expect("Coord should be in bounds")
     }
 
-    pub fn compute_candidates(self: &mut Self) {
+    pub fn compute_candidates(&mut self) {
         let mut candidates: HashMap<Coord, HashSet<u8>> = HashMap::new();
         for cell in self.cells.iter() {
-            if let Some(_) = cell.value {
+            if cell.value.is_some() {
                 continue;
             }
-            let regions = self.regions_for_cell(&cell);
+            let regions = self.regions_for_cell(cell);
             // Start out with all candidates
             let mut cell_candidates: HashSet<u8> = HashSet::from_iter(1..=self.size);
             for region in regions.iter() {
-                let cells = self.cells_for_region(*region);
+                let cells = self.cells_for_region(region);
                 for v in cells.iter().filter_map(|v| v.value) {
                     cell_candidates.remove(&v);
                 }
@@ -301,7 +301,7 @@ impl Grid {
         }
     }
 
-    pub fn apply_solutions(self: &mut Self, solutions: &[Solution]) {
+    pub fn apply_solutions(&mut self, solutions: &[Solution]) {
         for solution in solutions {
             {
                 let cell = self.grid_cell(solution.coord);
@@ -319,14 +319,14 @@ impl Grid {
         }
     }
 
-    pub fn apply_reductions(self: &mut Self, reductions: &[Reduction]) {
+    pub fn apply_reductions(&mut self, reductions: &[Reduction]) {
         for reduction in reductions {
             let cell = self.grid_cell(reduction.coord);
             cell.candidates.remove(&reduction.candidate);
         }
     }
 
-    pub fn add_extra_square(self: &mut Self, x: u8, y: u8) {
+    pub fn add_extra_square(&mut self, x: u8, y: u8) {
         let square_size = subgrid_size(self.size)
             .expect("Extra squares require a square grid");
         let square = Region::new(
@@ -334,16 +334,16 @@ impl Grid {
                 size: square_size,
                 top_left: Coord::new(x, y),
             }),
-            &self,
+            self,
         );
         self.regions.push(square);
     }
 
-    pub fn is_solved(self: &Self) -> bool {
+    pub fn is_solved(&self) -> bool {
         !self.cells.iter().any(|c| c.value.is_none())
     }
 
-    pub fn validate(self: &Self) -> Result<(), (&'static str, Coord)> {
+    pub fn validate(&self) -> Result<(), (&'static str, Coord)> {
         for region in self.regions.iter() {
             let mut found_values: HashSet<u8> = HashSet::with_capacity(self.size as usize);
             for cell in self.cells_for_region(region).iter() {
@@ -359,8 +359,8 @@ impl Grid {
         Ok(())
     }
 
-    pub fn possible_values(self: &Self) -> RangeInclusive<u8> {
-        return 1..=self.size;
+    pub fn possible_values(&self) -> RangeInclusive<u8> {
+        1..=self.size
     }
 }
 
